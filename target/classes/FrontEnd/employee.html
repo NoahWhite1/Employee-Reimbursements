@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel ="stylesheet" href="./employee.css">
+</head>
+<body>
+
+    <div id="rbody">
+        <br>
+    <h1>Reimbursement Creation</h1>
+    <br>
+        <input type="text" id="purposeInput" placeholder="purpose"> <input type="number" id="amountInput" placeholder="amount"><br><br>
+        <button onclick="createReimbursement()" id ="submitButton">submit</button>
+    </div>
+    
+    <div>
+        <br><br>
+    <button onclick="getAllReimbursements()" style="margin-left: 10px;">refresh</button>
+    <br><br>
+    <Table class = "table table-striped table-dark" id = "reimbursements">
+        
+        <thead>
+        <th>ID</th>
+        <th>Reason</th>
+        <th>Amount</th>
+        <th>Created By</th>
+        <th>Appraised By</th>
+        <th>Approval Status</th>
+        <th>Note</th>
+        </thead>
+        <tbody>
+           
+        </Table>
+    </div>
+    
+</body>
+<script>
+
+    window.onload = getAllReimbursements();
+
+    async function createReimbursement(){    
+        
+        const newPurpose = document.getElementById("purposeInput").value;
+        const newAmount = document.getElementById("amountInput").value;
+        const employeeId = await localStorage.getItem("employee");
+
+        let newReimbursement = {
+            purpose: newPurpose,
+            amount: newAmount,
+            employee: employeeId
+        }
+
+        const type = {
+            method:"POST",
+            headers:{'Content-Type' : 'application/json'},
+            body: JSON.stringify(newReimbursement)
+        };
+
+        const httpResponse = await fetch("http://localhost:7000/employees/reimbursements", type);
+        document.getElementById("purposeInput").value ="";
+        document.getElementById("amountInput").value="";
+        getAllReimbursements();
+    }
+
+    async function getAllReimbursements(){
+        const httpRes = await fetch("http://localhost:7000/reimbursements");
+        const reimbursements = await httpRes.json();
+        const table = document.getElementById("reimbursements")
+      
+        //removing all rows
+        while(table.rows.length > 1){
+            table.deleteRow(1); //doing 1 in both lines to avoid deleting headers
+        }
+
+
+        //updating all of the rows for reimbursements
+        for(let reimbursement of reimbursements){
+           let newRow  = table.insertRow(reimbursement.rId); //creating a new row
+           let count = 0;
+
+           while(count<7){ //Creating every cell needed in a row along with inserting the value
+                switch(count){
+                    case 0:
+
+                        newCell = newRow.insertCell(count);
+                        newCell.innerHTML = reimbursement.rId;
+
+                        break;
+                    case 1:
+
+                        newCell = newRow.insertCell(count);
+                        newCell.innerHTML = reimbursement.purpose;
+
+                        break;
+                    case 2:
+
+                        newCell = newRow.insertCell(count);
+                        newCell.innerHTML = reimbursement.amount;
+
+                        break;
+                    case 3:
+
+                        newCell = newRow.insertCell(count);
+                        let employeeName = await getCreatedBy(reimbursement.createdBy);
+                        newCell.innerHTML = employeeName.name;
+
+                        break;
+                    case 4:
+                    
+                        newCell = newRow.insertCell(count);
+                        let managerName = await getApprovedBy(reimbursement.approvedBy);
+    
+                        if(managerName === undefined){
+                         newCell.innerHTML = "Pending...";
+                            break;
+                        }
+                        
+                        newCell.innerHTML = managerName.name;
+                    
+                        break;
+                    case 5:
+
+                        newCell = newRow.insertCell(count);
+                    
+                       if(reimbursement.isApproved === undefined){
+                        newCell.innerHTML = "Pending...";
+                        break
+                        }
+
+                        newCell.innerHTML = reimbursement.isApproved;
+                        break;
+
+                    case 6:
+
+                        newCell = newRow.insertCell(count);
+                        
+                        if(reimbursement.note === undefined){
+                            newCell.innerHTML = "Pending...";
+                            break;
+                        }
+
+                        newCell.innerHTML = reimbursement.note;
+
+                        break;
+                }
+                count++;
+           }
+           
+        }
+    
+    }
+
+    async function getApprovedBy(mId){
+        if(mId == undefined){
+            return;
+        }
+        const http = await fetch(`http://localhost:7000/managers/${mId}`);
+        const manager = await http.json();
+        return manager;
+    }
+
+    async function getCreatedBy(eId){
+        const http = await fetch(`http://localhost:7000/employees/${eId}`);
+        const employee = await http.json();
+        return employee;
+    }
+
+</script>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Login</title>
+    <link rel="stylesheet" href="./login.css">
+    <link rel="stylesheet" href="./managerlogin.css">
+</head>
+<body>
+    <div id="loginBox" style="background-color:rgb(82, 0, 0);">
+        <br>
+        <h3>Username</h3>
+        <input type="text" id="usernameLogin" placeholder="Username"><br>
+        <h3>Password</h3>
+        <input type="text" id="passwordLogin" placeholder="Password"><br>
+        <br>
+        <br>
+        <button onclick="login()" id = "loginButton">Login</button>
+    </div>
+</body>
+<script>
+
+    async function login(){
+
+        const httpRes = await fetch("http://localhost:7000/managers");
+        const managers = await httpRes.json();
+        const username = document.getElementById("usernameLogin").value;
+        const password  = document.getElementById("passwordLogin").value;
+        
+        //Finding employees username and password information
+        for(let manager of managers){
+            if(manager.username == username){
+                if(manager.password === password){                    
+                    localStorage.setItem("manager", `${manager.mId}`);
+                    window.location.replace("/manager.html");
+                }
+            }
+        }
+    }
+
+</script>
+</html>

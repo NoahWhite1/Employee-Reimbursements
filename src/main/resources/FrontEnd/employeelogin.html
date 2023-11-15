@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Login</title>
+    <link rel="stylesheet" href="./login.css">
+    <link rel="stylesheet" href="./employeelogin.css">
+</head>
+<body>
+    <div id = loginBox style="background-color: rgb(0, 0, 82)">
+        <br>
+        <h3>Username</h3>
+        <input type="text" id="usernameLogin" placeholder="Username"><br>
+        <h3>Password</h3>
+        <input type="text" id="passwordLogin" placeholder="Password"><br>
+        <br>
+        <br>
+        <button onclick="login()" id = "loginButton">Login</button>
+    </div>
+</body>
+
+<script>
+
+    async function login(){
+
+        const httpRes = await fetch("http://localhost:7000/employees");
+        const employees = await httpRes.json();
+        const username = document.getElementById("usernameLogin").value;
+        const password  = document.getElementById("passwordLogin").value;
+        
+        //Finding employees username and password information
+        for(let employee of employees){
+            if(employee.username == username){
+                if(employee.password === password){                    
+                    localStorage.setItem("employee", `${employee.eId}`);
+                    window.location.replace("/employee.html");
+                }
+            }
+        }
+    }
+
+</script>
+</html>
